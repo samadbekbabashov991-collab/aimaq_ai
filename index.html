@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIMAQ AI — Жергілікті мәселелерді анықтау, талдау және бақылау платформасы</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #0f4c81;
+      --primary-hover: #0a365c;
+      --accent: #0284c7;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-badge {
+      background: rgba(255,255,255,0.16);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    .brand h1 { font-size: 20px; font-weight: 700; }
+    .brand p { font-size: 12px; opacity: 0.85; }
+
+    nav.tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,0.22); }
+    .tab-btn.active {
+      background: #fff;
+      color: var(--primary);
+      border-color: #fff;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 24px auto;
+      padding: 0 20px 48px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .kpi-value { font-size: 28px; font-weight: 800; margin-top: 6px; color: var(--primary); }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title { font-size: 17px; font-weight: 700; }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    select, input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .issue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .issue-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--surface-alt);
+    }
+    .issue-item:hover, .issue-item.selected {
+      border-color: var(--primary);
+      background: #f0f7ff;
+    }
+    .issue-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-high { background: var(--danger-bg); color: var(--danger); }
+    .badge-med { background: var(--warning-bg); color: var(--warning); }
+    .badge-low { background: var(--success-bg); color: var(--success); }
+    .badge-cluster { background: #e0f2fe; color: #0369a1; }
+    .badge-status { background: #e2e8f0; color: #334155; }
+    .badge-done { background: var(--success-bg); color: var(--success); }
+
+    .issue-title { font-weight: 700; font-size: 15px; }
+    .issue-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .detail-box {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .detail-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #166534; }
+    .btn-outline {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--surface-alt); }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .preset-btn {
+      text-align: left;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-alt);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      border-color: var(--accent);
+      background: #f0f9ff;
+    }
+    .preset-btn strong { display: block; font-size: 13px; color: var(--primary); }
+    .preset-btn span { font-size: 12px; color: var(--muted); }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+
+    .alert-banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      color: #0c4a6e;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .calc-result {
+      background: #f0f7ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .calc-num { font-size: 24px; font-weight: 800; color: var(--primary); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: var(--surface-alt); font-weight: 700; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-badge">MVP v0.1</div>
+      <div>
+        <h1>AIMAQ AI</h1>
+        <p>Жергілікті мәселелерді анықтау, талдау және бақылау платформасы • Көкшетау</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" onclick="switchTab('dispatcher', this)">Әкімдік / Диспетчер панелі</button>
+      <button class="tab-btn" onclick="switchTab('citizen', this)">Тұрғын порталы / Telegram-бот</button>
+      <button class="tab-btn" onclick="switchTab('business', this)">B2G / B2B Құндылық және Модель</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- 1. DISPATCHER PANEL -->
+  <section id="view-dispatcher" class="view active">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Барлық түскен хабарламалар</div>
+        <div class="kpi-value" id="kpi-total">9</div>
+        <div class="kpi-sub">Веб + Telegram-бот арналары</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">AI біріктірген қайталамалар</div>
+        <div class="kpi-value" id="kpi-merged">5</div>
+        <div class="kpi-sub">Бір оқиғаға топтастырылған шағымдар</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Жоғары басымдықты оқиғалар</div>
+        <div class="kpi-value" id="kpi-high" style="color: var(--danger);">2</div>
+        <div class="kpi-sub">Маман растауын күтуде / бақылауда</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Шешілген тапсырмалар</div>
+        <div class="kpi-value" id="kpi-resolved" style="color: var(--success);">1</div>
+        <div class="kpi-sub">Кері байланыс берілген өтініштер</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: Clustered Issues List -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Топтастырылған мәселелер тізімі (AI Deduplication)</div>
+        </div>
+        <div class="filter-row">
+          <select id="filter-category" onchange="renderIssues()" style="max-width: 220px;">
+            <option value="ALL">Барлық санаттар</option>
+            <option value="Жол инфрақұрылымы">Жол инфрақұрылымы</option>
+            <option value="Көше жарығы">Көше жарығы</option>
+            <option value="Тазалық және қоқыс">Тазалық және қоқыс</option>
+            <option value="Су құбыры / ТКШ">Су құбыры / ТКШ</option>
+          </select>
+          <select id="filter-status" onchange="renderIssues()" style="max-width: 220px;">
+            <option value="ALL">Барлық мәртебелер</option>
+            <option value="Жаңа / AI талдады">Жаңа / AI талдады</option>
+            <option value="Тапсырма бекітілді">Тапсырма бекітілді</option>
+            <option value="Шешілді">Шешілді</option>
+          </select>
+        </div>
+        <div class="issue-list" id="issue-list"></div>
+      </div>
+
+      <!-- Right: Human-in-the-loop Inspector -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Маман тексеруі және наряд-тапсырма (Human-in-the-Loop)</div>
+        </div>
+        <div id="inspector-panel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CITIZEN PORTAL / TELEGRAM BOT -->
+  <section id="view-citizen" class="view">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Жаңа өтініш жіберу (Веб / Telegram-бот симуляторы)</div>
+        </div>
+        <div class="alert-banner">
+          Тұрғын үшін қарапайым процесс: мәтін мен орынды жіберсеңіз, AI санатты анықтайды және сол жерде бұрын тіркелген өтініш болса, автоматты түрде біріктіреді.
+        </div>
+
+        <div class="detail-label" style="margin-bottom: 8px;">Жылдам тестілік үлгілер (бір басу арқылы толтыру):</div>
+        <div class="preset-grid">
+          <button type="button" class="preset-btn" onclick="applyPreset('Абай көшесі, 112', 'Жол инфрақұрылымы', 'Абай көшесі мен қиылысында үлкен шұңқыр бар, көліктерге қауіпті.')">
+            <strong>1. Жол шұңқыры (Қайталанатын)</strong>
+            <span>Абай көшесі, 112 — бар кластерге қосылады</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('Назарбаев даңғылы, 45', 'Көше жарығы', 'Кешкі уақытта жаяу жүргіншілер жолындағы 4 шам мүлдем жанбай тұр.')">
+            <strong>2. Көше жарығы (Қаз/Орыс)</strong>
+            <span>Назарбаев даңғылы, 45 — жарық ақауы</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('Красный Яр ауылдық округі, Орталық көше', 'Су құбыры / ТКШ', 'Құдықтан су ағып жатыр, жол шетін су басып қалды.')">
+            <strong>3. Ауылдық округ / Су ақауы</strong>
+            <span>Красный Яр — шұғыл ТКШ сигналы</span>
+          </button>
+        </div>
+
+        <form onsubmit="submitCitizenReport(event)">
+          <div class="form-group">
+            <label>Елді мекен / Мекенжай</label>
+            <input type="text" id="inp-location" required placeholder="Мысалы: Көкшетау қ., Абай көшесі, 112" />
+          </div>
+          <div class="form-group">
+            <label>Мәселе санаты (немесе AI автоматты анықтайды)</label>
+            <select id="inp-category">
+              <option value="AUTO">Автоматты анықтау (AI NLP)</option>
+              <option value="Жол инфрақұрылымы">Жол инфрақұрылымы</option>
+              <option value="Көше жарығы">Көше жарығы</option>
+              <option value="Тазалық және қоқыс">Тазалық және қоқыс</option>
+              <option value="Су құбыры / ТКШ">Су құбыры / ТКШ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Мәселе сипаттамасы (Қазақша немесе Орысша)</label>
+            <textarea id="inp-desc" rows="3" required placeholder="Мәселені қысқаша сипаттаңыз..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Фото дәлел (Симуляция)</label>
+            <select id="inp-photo">
+              <option value="Фото тіркелді (AI CV: ақау расталды)">Фото тіркелді (жүйе фотоны алдын ала тексереді)</option>
+              <option value="Фотосыз мәтіндік өтініш">Фотосыз жіберу</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Өтінішті жіберу және AI-талдау жасау</button>
+        </form>
+        <div id="submit-feedback" style="margin-top: 14px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Тұрғынға көрінетін ашық мәртебелер тақтасы</div>
+        </div>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">
+          Тұрғын өзі жіберген өтініштің қай кезеңде тұрғанын және жауапты қызметтің әрекетін нақты уақытта бақылай алады.
+        </p>
+        <div id="citizen-status-list" class="issue-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. BUSINESS MODEL & VALUE -->
+  <section id="view-business" class="view">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">B2G / B2B Бизнес-модель: Кім сатып алады және қалай табыс түседі?</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Клиент сегменті</th>
+            <th>Негізгі мәселесі</th>
+            <th>AIMAQ AI шешімі</th>
+            <th>Монетизация моделі</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ауылдық округтер және аудан/қала әкімдіктері (ТКШ)</strong></td>
+            <td>WhatsApp, телефон, әлеуметтік желідегі шашыраңқы және қайталанатын шағымдар</td>
+            <td>Бірыңғай қабылдау, қайталамаларды біріктіру, маман бекітетін наряд-тапсырма</td>
+            <td>B2G айлық/жылдық жазылым + енгізу және оқыту қызметі</td>
+          </tr>
+          <tr>
+            <td><strong>Басқарушы компаниялар, МИБ (ОСИ) / ПИК</strong></td>
+            <td>Тұрғындардың күнделікті өтініштерін есепке алу және орындалуын дәлелдеу</td>
+            <td>Өтініштер статусы, фото-есеп және тұрғындарға ашық кері байланыс</td>
+            <td>B2B SaaS жазылым (үйлер/пайдаланушылар санына қарай)</td>
+          </tr>
+          <tr>
+            <td><strong>Коммуналдық және сервистік ұйымдар</strong></td>
+            <td>Диспетчерлік тапсырмалардың нақты гео-нүктесіз және басымдықсыз түсуі</td>
+            <td>Санатталған және гео-байланысқан дайын тапсырмалар легі</td>
+            <td>B2B жазылым + интеграциялық модульдер</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Жазылым табысын есептегіш (B2G / B2B SaaS Simulator)</div>
+      </div>
+      <div class="calc-grid">
+        <div class="form-group">
+          <label>Қосылған ұйымдар саны (округ / ТКШ / сервистік компания): <strong id="lbl-orgs">8</strong></label>
+          <input type="range" id="rng-orgs" min="1" max="50" value="8" oninput="updateCalc()" />
+        </div>
+        <div class="form-group">
+          <label>Орташа айлық тариф (теңге): <strong id="lbl-price">120 000 ₸</strong></label>
+          <input type="range" id="rng-price" min="50000" max="350000" step="10000" value="120000" oninput="updateCalc()" />
+        </div>
+        <div class="calc-result">
+          <div class="kpi-label">Айлық тұрақты табыс (MRR)</div>
+          <div class="calc-num" id="res-mrr">960 000 ₸</div>
+          <div class="kpi-sub" id="res-arr">Жылдық айналым (ARR): 11 520 000 ₸</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const issues = [
+    {
+      id: "REQ-101",
+      location: "Абай көшесі, 112",
+      category: "Жол инфрақұрылымы",
+      title: "Жол бетіндегі терең шұңқыр және жиектастың бұзылуы",
+      description: "Абай көшесі бойындағы қиылыста терең шұңқыр пайда болған, көліктер қарсы жолаққа шығуға мәжбүр.",
+      count: 4,
+      priority: "Жоғары",
+      aiReason: "Бір локациядан 4 қайталанатын хабарлама түсті + қозғалыс қауіпсіздігіне тікелей әсер етеді.",
+      department: "Қалалық жол инфрақұрылымы және ТКШ бөлімі",
+      taskDraft: "Абай көшесі, 112 учаскесіндегі асфальт жабындысын тексеру және шұғыл шұңқыр жөндеу жұмыстарын жүргізу.",
+      photoStatus: "Фото тіркелді (AI CV: жол жабындысының ақауы анықталды)",
+      status: "Жаңа / AI талдады",
+      updatedAt: "Бүгін, 14:20"
+    },
+    {
+      id: "REQ-102",
+      location: "Назарбаев даңғылы, 45",
+      category: "Көше жарығы",
+      title: "Жаяу жүргіншілер жолындағы көше шамдарының сөнуі",
+      description: "Кешкі уақытта 4 бағанадағы шам жанбай тұр, мектеп оқушылары өтетін жол қараңғы.",
+      count: 3,
+      priority: "Жоғары",
+      aiReason: "3 тұрғыннан хабарлама біріктірілді + әлеуметтік нысан (мектеп) маңындағы жарық ақауы.",
+      department: "Сыртқы жарықтандыру сервистік қызметі",
+      taskDraft: "Назарбаев даңғылы, 45 маңындағы жарық желісінің кабелі мен шамдарын тексеріп қалпына келтіру.",
+      photoStatus: "Фото тіркелді (AI CV: түнгі жарық деңгейі төмен)",
+      status: "Тапсырма бекітілді",
+      updatedAt: "Бүгін, 12:05"
+    },
+    {
+      id: "REQ-103",
+      location: "Кенесары көшесі, 78 ауласы",
+      category: "Тазалық және қоқыс",
+      title: "Қоқыс контейнерлерінің уақытылы шығарылмауы",
+      description: "Контейнер алаңы толып кеткен, желмен қоқыс аулаға шашылып жатыр.",
+      count: 1,
+      priority: "Орташа",
+      aiReason: "Алғашқы хабарлама; санитарлық тазалық санатына жатқызылды.",
+      department: "Абаттандыру және санитарлық тазалық қызметі",
+      taskDraft: "Кенесары көшесі, 78 ауласындағы контейнер алаңын тазалау және шығару кестесін бақылау.",
+      photoStatus: "Фото тіркелді (AI CV: ТҚҚ жиналуы расталды)",
+      status: "Жаңа / AI талдады",
+      updatedAt: "Бүгін, 10:40"
+    },
+    {
+      id: "REQ-104",
+      location: "Ш. Уәлиханов көшесі, 24",
+      category: "Су құбыры / ТКШ",
+      title: "Су құдығы қақпағының ығысуы жойылды",
+      description: "Тротуар жиегіндегі люк қақпағы ашық қалған болатын.",
+      count: 1,
+      priority: "Төмен",
+      aiReason: "Жауапты бригада тарапынан жабылып, орындалу мәртебесі расталды.",
+      department: "Су арнасы / ТКШ кезекші тобы",
+      taskDraft: "Люк қақпағы орнына бекітілді, қауіпсіздік қамтамасыз етілді.",
+      photoStatus: "Фото тіркелді (Орындалды)",
+      status: "Шешілді",
+      updatedAt: "Кеше, 17:50"
+    }
+  ];
+
+  let selectedId = issues[0].id;
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + tab).classList.add('active');
+  }
+
+  function priorityBadge(p) {
+    if (p === "Жоғары") return '<span class="badge badge-high">Жоғары басымдық</span>';
+    if (p === "Орташа") return '<span class="badge badge-med">Орташа басымдық</span>';
+    return '<span class="badge badge-low">Төмен басымдық</span>';
+  }
+
+  function statusBadge(s) {
+    if (s === "Шешілді") return '<span class="badge badge-done">Шешілді</span>';
+    return `<span class="badge badge-status">${s}</span>`;
+  }
+
+  function updateKPIs() {
+    const totalReports = issues.reduce((acc, item) => acc + item.count, 0);
+    const mergedCount = issues.reduce((acc, item) => acc + Math.max(0, item.count - 1), 0);
+    const highCount = issues.filter(i => i.priority === "Жоғары" && i.status !== "Шешілді").length;
+    const resolvedCount = issues.filter(i => i.status === "Шешілді").length;
+
+    document.getElementById('kpi-total').textContent = totalReports;
+    document.getElementById('kpi-merged').textContent = mergedCount;
+    document.getElementById('kpi-high').textContent = highCount;
+    document.getElementById('kpi-resolved').textContent = resolvedCount;
+  }
+
+  function renderIssues() {
+    const cat = document.getElementById('filter-category').value;
+    const st = document.getElementById('filter-status').value;
+    const list = document.getElementById('issue-list');
+    list.innerHTML = '';
+
+    const filtered = issues.filter(item => {
+      const okCat = cat === 'ALL' || item.category === cat;
+      const okSt = st === 'ALL' || item.status === st;
+      return okCat && okSt;
+    });
+
+    filtered.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'issue-item' + (item.id === selectedId ? ' selected' : '');
+      div.onclick = () => {
+        selectedId = item.id;
+        renderIssues();
+        renderInspector();
+      };
+      div.innerHTML = `
+        <div class="issue-top">
+          <div>
+            <span class="badge badge-cluster">x${item.count} өтініш біріктірілді</span>
+            ${priorityBadge(item.priority)}
+          </div>
+          ${statusBadge(item.status)}
+        </div>
+        <div class="issue-title">${item.title}</div>
+        <div class="issue-meta">${item.location} • ${item.category} • ${item.updatedAt}</div>
+      `;
+      list.appendChild(div);
+    });
+
+    renderCitizenBoard();
+    updateKPIs();
+  }
+
+  function renderInspector() {
+    const item = issues.find(i => i.id === selectedId) || issues[0];
+    const panel = document.getElementById('inspector-panel');
+
+    panel.innerHTML = `
+      <div class="detail-box">
+        <div class="detail-label">Оқиға коды және мекенжайы</div>
+        <strong>${item.id} — ${item.location}</strong> (${item.category})
+        <p style="font-size: 14px; margin-top: 6px;">${item.description}</p>
+        <div class="issue-meta" style="margin-top: 8px;">${item.photoStatus}</div>
+      </div>
+
+      <div class="detail-box">
+        <div class="detail-label">AI талдау және басымдық негіздемесі</div>
+        <p style="font-size: 13px;">${item.aiReason}</p>
+        <div style="margin-top: 10px;">
+          <label style="font-size: 12px; font-weight: 700;">Басымдықты маман түзетуі:</label>
+          <select onchange="changePriority('${item.id}', this.value)" style="margin-top: 4px;">
+            <option value="Жоғары" ${item.priority === 'Жоғары' ? 'selected' : ''}>Жоғары</option>
+            <option value="Орташа" ${item.priority === 'Орташа' ? 'selected' : ''}>Орташа</option>
+            <option value="Төмен" ${item.priority === 'Төмен' ? 'selected' : ''}>Төмен</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="detail-box">
+        <div class="detail-label">Жауапты бөлімге дайындалған тапсырма</div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">${item.department}</div>
+        <p style="font-size: 13px;">${item.taskDraft}</p>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="updateStatus('${item.id}', 'Тапсырма бекітілді')">Тапсырманы бекіту</button>
+        <button class="btn btn-success" onclick="updateStatus('${item.id}', 'Шешілді')">Шешілді деп белгілеу</button>
+      </div>
+    `;
+  }
+
+  function changePriority(id, val) {
+    const item = issues.find(i => i.id === id);
+    if (item) {
+      item.priority = val;
+      renderIssues();
+      renderInspector();
+    }
+  }
+
+  function updateStatus(id, newStatus) {
+    const item = issues.find(i => i.id === id);
+    if (item) {
+      item.status = newStatus;
+      item.updatedAt = "Жаңа ғана жаңартылды";
+      renderIssues();
+      renderInspector();
+    }
+  }
+
+  function renderCitizenBoard() {
+    const board = document.getElementById('citizen-status-list');
+    board.innerHTML = '';
+    issues.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'issue-item';
+      div.innerHTML = `
+        <div class="issue-top">
+          <strong>${item.location}</strong>
+          ${statusBadge(item.status)}
+        </div>
+        <div style="font-size: 13px;">${item.title}</div>
+        <div class="issue-meta">Санат: ${item.category} • Біріктірілген өтініштер: ${item.count}</div>
+      `;
+      board.appendChild(div);
+    });
+  }
+
+  function applyPreset(loc, cat, desc) {
+    document.getElementById('inp-location').value = loc;
+    document.getElementById('inp-category').value = cat;
+    document.getElementById('inp-desc').value = desc;
+  }
+
+  function detectCategory(text) {
+    const t = text.toLowerCase();
+    if (t.includes('шұңқыр') || t.includes('жол') || t.includes('асфальт') || t.includes('яма')) return 'Жол инфрақұрылымы';
+    if (t.includes('жарық') || t.includes('шам') || t.includes('свет') || t.includes('фонар')) return 'Көше жарығы';
+    if (t.includes('қоқыс') || t.includes('мусор') || t.includes('тазалық')) return 'Тазалық және қоқыс';
+    return 'Су құбыры / ТКШ';
+  }
+
+  function submitCitizenReport(e) {
+    e.preventDefault();
+    const loc = document.getElementById('inp-location').value.trim();
+    const rawCat = document.getElementById('inp-category').value;
+    const desc = document.getElementById('inp-desc').value.trim();
+    const photo = document.getElementById('inp-photo').value;
+
+    const category = rawCat === 'AUTO' ? detectCategory(desc) : rawCat;
+
+    // Deduplication check by location & category
+    const existing = issues.find(i =>
+      i.category === category &&
+      (i.location.toLowerCase().includes(loc.toLowerCase().slice(0, 10)) || loc.toLowerCase().includes(i.location.toLowerCase().slice(0, 10)))
+    );
+
+    const fb = document.getElementById('submit-feedback');
+
+    if (existing) {
+      existing.count += 1;
+      existing.updatedAt = "Жаңа ғана (қайталама қосылды)";
+      if (existing.count >= 3 && existing.priority !== "Жоғары") {
+        existing.priority = "Жоғары";
+      }
+      existing.aiReason = `Бір локациядан ${existing.count} ұқсас өтініш біріктірілді. Басымдық автоматты түрде қайта бағаланды.`;
+      selectedId = existing.id;
+      fb.innerHTML = `<div class="alert-banner" style="background:#dcfce7; border-color:#86efac; color:#14532d;">
+        <strong>AI Deduplication іске қосылды:</strong> Бұл өтініш бұрын тіркелген <strong>${existing.id} (${existing.location})</strong> оқиғасына біріктірілді (барлығы x${existing.count} өтініш).
+      </div>`;
+    } else {
+      const newId = "REQ-" + (101 + issues.length);
+      const newIssue = {
+        id: newId,
+        location: loc,
+        category: category,
+        title: desc.length > 52 ? desc.slice(0, 52) + "..." : desc,
+        description: desc,
+        count: 1,
+        priority: "Орташа",
+        aiReason: `AI мәтінді талдап, «${category}» санатына жатқызды. Маман растауын күтуде.`,
+        department: `${category} бойынша жауапты бөлім`,
+        taskDraft: `${loc} мекенжайы бойынша түскен өтінішті тексеру және орындау шараларын қабылдау.`,
+        photoStatus: photo,
+        status: "Жаңа / AI талдады",
+        updatedAt: "Жаңа ғана"
+      };
+      issues.unshift(newIssue);
+      selectedId = newId;
+      fb.innerHTML = `<div class="alert-banner">
+        <strong>Жаңа оқиға тіркелді (${newId}):</strong> Санат — <strong>${category}</strong>. Диспетчер панеліне жіберілді.
+      </div>`;
+    }
+
+    renderIssues();
+    renderInspector();
+  }
+
+  function updateCalc() {
+    const orgs = Number(document.getElementById('rng-orgs').value);
+    const price = Number(document.getElementById('rng-price').value);
+    const mrr = orgs * price;
+    const arr = mrr * 12;
+
+    document.getElementById('lbl-orgs').textContent = orgs;
+    document.getElementById('lbl-price').textContent = price.toLocaleString('ru-RU') + ' ₸';
+    document.getElementById('res-mrr').textContent = mrr.toLocaleString('ru-RU') + ' ₸';
+    document.getElementById('res-arr').textContent = 'Жылдық айналым (ARR): ' + arr.toLocaleString('ru-RU') + ' ₸';
+  }
+
+  renderIssues();
+  renderInspector();
+  updateCalc();
+</script>
+</body>
+</html>
